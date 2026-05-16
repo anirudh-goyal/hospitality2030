@@ -43,3 +43,8 @@ next-env.d.ts
 
 # convex
 convex/_generated/
+
+# playwright mcp scratch
+.playwright-mcp/
+tokens-probe.png
+
