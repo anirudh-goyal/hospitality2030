@@ -1,4 +1,10 @@
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type KeyFact = { fact: string; source: string };
 
@@ -7,18 +13,22 @@ export function KeyFactsSection({ facts }: { facts: KeyFact[] }) {
   return (
     <section>
       <div className="section-label mb-3">Three Key Facts</div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-[var(--accent)]/[0.04] *:data-[slot=card]:to-[var(--card)] *:data-[slot=card]:shadow-xs">
         {facts.slice(0, 3).map((f, i) => (
-          <Card
-            key={i}
-            className="px-5 py-4 border-l-2 border-l-[var(--accent)] gap-3 h-full"
-          >
-            <p className="text-[0.9375rem] leading-snug text-[var(--text-primary)]">
-              {f.fact}
-            </p>
-            <div className="font-mono text-[0.75rem] text-[var(--text-tertiary)] mt-auto">
-              {f.source}
-            </div>
+          <Card key={i} className="gap-3">
+            <CardHeader className="gap-2">
+              <CardDescription className="text-[var(--text-tertiary)] font-mono uppercase tracking-wider text-[0.6875rem]">
+                {`Fact 0${i + 1}`}
+              </CardDescription>
+              <CardTitle className="text-[1rem] font-medium leading-snug text-[var(--text-primary)]">
+                {f.fact}
+              </CardTitle>
+            </CardHeader>
+            <CardFooter className="rounded-b-xl border-t border-[var(--border)] bg-transparent">
+              <div className="font-mono text-[0.75rem] text-[var(--text-tertiary)]">
+                {f.source}
+              </div>
+            </CardFooter>
           </Card>
         ))}
       </div>

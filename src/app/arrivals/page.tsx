@@ -2,6 +2,7 @@ import { fetchQuery } from "convex/nextjs";
 import Link from "next/link";
 import { api } from "../../../convex/_generated/api";
 import { GuestCard } from "@/components/guest-card";
+import { SiteHeader } from "@/components/site-header";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Filter = "today" | "tomorrow" | "vip";
@@ -32,14 +33,14 @@ export default async function ArrivalsPage({
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="flex items-center justify-between px-6 py-3 border-b border-[var(--border)]">
-        <div className="text-[0.8125rem] text-[var(--text-secondary)]">
-          Arrivals
-        </div>
-        <div className="font-mono text-[0.75rem] text-[var(--text-tertiary)]">
-          {today} · Rosewood Hong Kong
-        </div>
-      </div>
+      <SiteHeader
+        crumbs={[{ label: "Arrivals" }]}
+        right={
+          <span className="font-mono text-[0.75rem] text-[var(--text-tertiary)]">
+            {today} · Rosewood Hong Kong
+          </span>
+        }
+      />
 
       <div className="flex-1 min-h-0 overflow-auto">
         <div className="max-w-3xl mx-auto px-6 py-10">

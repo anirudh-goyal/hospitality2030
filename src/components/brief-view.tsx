@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import type { Doc } from "../../convex/_generated/dataModel";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SiteHeader } from "./site-header";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { BriefHeader } from "./brief-header";
 import { KeyFactsSection } from "./key-facts-section";
 import { ExternalSignalsSection } from "./external-signals-section";
@@ -40,24 +44,17 @@ export function BriefView({ guest, brief, signals }: Props) {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* breadcrumb strip */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-[var(--border)]">
-        <div className="flex items-center gap-1.5 text-[0.8125rem]">
-          <Link
-            href="/arrivals"
-            className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            Arrivals
-          </Link>
-          <ChevronRight className="size-3.5 text-[var(--text-tertiary)]" />
-          <span className="text-[var(--text-secondary)]">
-            {guest.firstName} {guest.lastName}
+      <SiteHeader
+        crumbs={[
+          { label: "Arrivals", href: "/arrivals" },
+          { label: `${guest.firstName} ${guest.lastName}` },
+        ]}
+        right={
+          <span className="font-mono text-[0.75rem] text-[var(--text-tertiary)]">
+            {today} · Rosewood Hong Kong
           </span>
-        </div>
-        <div className="font-mono text-[0.75rem] text-[var(--text-tertiary)]">
-          {today} · Rosewood Hong Kong
-        </div>
-      </div>
+        }
+      />
 
       <BriefHeader guest={guest} role={role} onRoleChange={setRole} />
 

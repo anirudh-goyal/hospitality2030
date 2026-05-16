@@ -3,7 +3,8 @@ import { Cormorant_Garamond, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/convex-provider";
 import { AppSidebar } from "@/components/app-sidebar";
-import { CaptureFAB } from "@/components/capture-fab";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -36,11 +37,19 @@ export default function RootLayout({
     >
       <body>
         <Providers>
-          <div className="flex min-h-screen">
-            <AppSidebar />
-            <main className="flex-1 min-w-0">{children}</main>
-          </div>
-          <CaptureFAB />
+          <TooltipProvider delayDuration={0}>
+          <SidebarProvider
+            style={
+              {
+                "--sidebar-width": "16rem",
+                "--header-height": "3.5rem",
+              } as React.CSSProperties
+            }
+          >
+            <AppSidebar variant="inset" />
+            <SidebarInset className="bg-[var(--bg)]">{children}</SidebarInset>
+          </SidebarProvider>
+          </TooltipProvider>
         </Providers>
       </body>
     </html>

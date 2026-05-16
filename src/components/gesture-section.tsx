@@ -7,7 +7,15 @@ import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { DelightModal } from "./delight-modal";
 
 export function GestureSection({
@@ -32,57 +40,67 @@ export function GestureSection({
         <Sparkles className="size-3.5 text-[var(--accent)]" />
         Suggested Gesture
       </div>
-      <Card className="p-6 border-l-2 border-l-[var(--accent)] gap-4 h-[calc(100%-1.75rem)]">
-        <div className="flex items-start justify-between gap-3">
-          <h2
-            className="text-[1.5rem] font-medium leading-tight"
-            style={{ color: "var(--text-primary)" }}
-          >
+      <Card className="h-[calc(100%-1.75rem)] gap-4 bg-gradient-to-t from-[var(--accent)]/[0.06] to-[var(--card)] shadow-xs">
+        <CardHeader>
+          <CardDescription className="font-mono text-[0.75rem] uppercase tracking-wider text-[var(--text-tertiary)]">
+            Pre-arrival recommendation
+          </CardDescription>
+          <CardTitle className="text-[1.5rem] font-medium leading-tight text-[var(--text-primary)]">
             {primary.title}
-          </h2>
-          {scheduled ? (
-            <Badge
-              className="font-mono text-[0.6875rem] shrink-0"
-              style={{
-                background: "var(--accent-muted)",
-                color: "var(--accent)",
-              }}
-            >
-              Scheduled
-            </Badge>
-          ) : null}
-        </div>
-
-        <div className="font-mono text-[0.8125rem] text-[var(--text-secondary)]">
-          {scheduled
-            ? primary.availability
-            : `HKD ${primary.estCostHkd.toLocaleString()} · ${primary.availability}`}
-        </div>
-
-        <p className="text-[0.9375rem] leading-relaxed text-[var(--text-secondary)]">
-          {primary.rationale}
-        </p>
-
-        <div className="flex items-center gap-3 mt-auto pt-2">
-          {!scheduled ? (
+          </CardTitle>
+          <CardAction>
+            {scheduled ? (
+              <Badge
+                className="font-mono text-[0.6875rem]"
+                style={{
+                  background: "var(--accent-muted)",
+                  color: "var(--accent)",
+                }}
+              >
+                Scheduled
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="font-mono text-[0.6875rem] text-[var(--accent)] border-[var(--accent)]/40"
+              >
+                {scheduled
+                  ? primary.availability
+                  : `HKD ${primary.estCostHkd.toLocaleString()}`}
+              </Badge>
+            )}
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <p className="text-[0.9375rem] leading-relaxed text-[var(--text-secondary)]">
+            {primary.rationale}
+          </p>
+        </CardContent>
+        <CardFooter className="flex items-center justify-between gap-3 rounded-b-xl border-t border-[var(--border)] bg-transparent">
+          <span className="font-mono text-[0.8125rem] text-[var(--text-tertiary)]">
+            {primary.availability}
+          </span>
+          <div className="flex items-center gap-2">
+            {!scheduled ? (
+              <Button
+                size="sm"
+                onClick={() => setOpen(true)}
+                className="font-medium text-[0.8125rem] h-auto py-2 px-3.5 border-0"
+                style={{ background: "var(--accent)", color: "#0a0909" }}
+              >
+                Approve and schedule
+              </Button>
+            ) : null}
             <Button
+              variant="outline"
               size="sm"
               onClick={() => setOpen(true)}
-              className="font-medium text-[0.8125rem] h-auto py-2.5 px-4 border-0"
-              style={{ background: "var(--accent)", color: "#0a0909" }}
+              className="font-medium text-[0.8125rem] h-auto py-2 px-3.5 bg-transparent border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--elevated)] hover:text-[var(--text-primary)]"
             >
-              Approve and schedule
+              View options
             </Button>
-          ) : null}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setOpen(true)}
-            className="font-medium text-[0.8125rem] h-auto py-2.5 px-4 bg-transparent border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--elevated)] hover:text-[var(--text-primary)]"
-          >
-            View all options
-          </Button>
-        </div>
+          </div>
+        </CardFooter>
       </Card>
       <DelightModal
         open={open}

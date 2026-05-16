@@ -1,5 +1,10 @@
 import { AlertTriangle } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/components/ui/card";
 
 export function SensitivitiesSection({ items }: { items: string[] }) {
   if (!items.length) return null;
@@ -10,29 +15,37 @@ export function SensitivitiesSection({ items }: { items: string[] }) {
           className="size-3.5"
           style={{ color: "var(--sensitivity)" }}
         />
-        <span style={{ color: "var(--sensitivity)" }}>
-          Staff Notes · Do Not Mention
-        </span>
+        <span style={{ color: "var(--sensitivity)" }}>Staff Notes</span>
       </div>
       <Card
-        className="p-5 gap-3 border-l-2 h-[calc(100%-1.75rem)]"
+        className="h-[calc(100%-1.75rem)] gap-3 shadow-xs"
         style={{
           background:
-            "color-mix(in oklch, var(--sensitivity) 6%, var(--card))",
-          borderLeftColor: "var(--sensitivity)",
+            "linear-gradient(to top, color-mix(in oklch, var(--sensitivity) 8%, transparent), var(--card))",
+          borderColor: "color-mix(in oklch, var(--sensitivity) 25%, var(--border))",
         }}
       >
-        <ul className="flex flex-col gap-2.5 text-[0.875rem] leading-snug text-[var(--text-primary)]">
-          {items.map((i, idx) => (
-            <li key={idx} className="flex gap-2">
-              <span
-                className="mt-1.5 size-1 rounded-full shrink-0"
-                style={{ background: "var(--sensitivity)" }}
-              />
-              <span>{i}</span>
-            </li>
-          ))}
-        </ul>
+        <CardHeader>
+          <CardDescription
+            className="font-mono text-[0.75rem] uppercase tracking-wider"
+            style={{ color: "var(--sensitivity)" }}
+          >
+            Do not mention
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul className="flex flex-col gap-2.5 text-[0.875rem] leading-snug text-[var(--text-primary)]">
+            {items.map((i, idx) => (
+              <li key={idx} className="flex gap-2.5">
+                <span
+                  className="mt-1.5 size-1 rounded-full shrink-0"
+                  style={{ background: "var(--sensitivity)" }}
+                />
+                <span>{i}</span>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
       </Card>
     </section>
   );
