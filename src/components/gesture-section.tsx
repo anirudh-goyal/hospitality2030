@@ -95,23 +95,13 @@ export function GestureSection({
             {primary.availability}
           </span>
           <div className="flex items-center gap-2">
-            {!scheduled ? (
-              <Button
-                size="sm"
-                onClick={() => setOpen(true)}
-                className="font-medium text-[0.8125rem] h-auto py-2 px-3.5 border-0"
-                style={{ background: "var(--accent)", color: "#0a0909" }}
-              >
-                Approve and schedule
-              </Button>
-            ) : null}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setOpen(true)}
               className="font-medium text-[0.8125rem] h-auto py-2 px-3.5 bg-transparent border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--elevated)] hover:text-[var(--text-primary)]"
             >
-              View options
+              View more options
             </Button>
           </div>
         </CardFooter>
