@@ -88,10 +88,7 @@ export function DelightModal({
                       style={{ background: "var(--accent)" }}
                     />
                   ) : null}
-                  <div
-                    className="font-display"
-                    style={{ fontSize: "1.25rem", fontWeight: 500 }}
-                  >
+                  <div className="text-[1.125rem] font-medium text-[var(--text-primary)]">
                     {g.title}
                   </div>
                 </div>

@@ -37,21 +37,24 @@ export function RoleSwitcher({
         <Button
           variant="outline"
           size="sm"
-          className="font-mono text-xs h-auto py-2 px-3.5 bg-transparent border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--elevated)] hover:text-[var(--text-primary)]"
+          className="text-[0.8125rem] font-medium h-auto py-1.5 px-3 bg-transparent border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--elevated)] hover:text-[var(--text-primary)]"
         >
+          <span className="text-[0.6875rem] text-[var(--text-tertiary)] mr-1.5">
+            Role
+          </span>
           {ROLE_LABELS[role]}
-          <ChevronDown className="ml-1 size-3 opacity-60" />
+          <ChevronDown className="ml-1 size-3 opacity-70" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="bg-[var(--elevated)] border-[var(--border)]"
+        className="bg-[var(--elevated)] border-[var(--border)] min-w-[180px]"
       >
         {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
           <DropdownMenuItem
             key={r}
             onSelect={() => onChange(r)}
-            className="font-mono text-[0.8125rem] cursor-pointer focus:bg-[var(--surface)] focus:text-[var(--text-primary)]"
+            className="text-[0.8125rem] cursor-pointer focus:bg-[var(--surface)] focus:text-[var(--text-primary)]"
           >
             {ROLE_LABELS[r]}
           </DropdownMenuItem>

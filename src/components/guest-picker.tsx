@@ -47,8 +47,7 @@ export function GuestPicker({
           {value ? (
             <span className="flex items-baseline gap-3 flex-wrap">
               <span
-                className="font-display"
-                style={{ fontSize: "1.125rem", fontWeight: 500 }}
+                className="text-[1rem] font-medium text-[var(--text-primary)]"
               >
                 {value.firstName} {value.lastName}
               </span>
@@ -89,10 +88,7 @@ export function GuestPicker({
                 }}
                 className="aria-selected:bg-[var(--surface)] aria-selected:text-[var(--text-primary)] cursor-pointer"
               >
-                <span
-                  className="font-display"
-                  style={{ fontSize: "1rem", fontWeight: 500 }}
-                >
+                <span className="text-[0.9375rem] font-medium text-[var(--text-primary)]">
                   {g.firstName} {g.lastName}
                 </span>
                 <span className="font-mono text-xs text-[var(--text-tertiary)] ml-3">

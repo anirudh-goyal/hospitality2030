@@ -8,8 +8,8 @@ function format(targetIso: string, now: number): string {
   const totalMinutes = Math.floor(ms / 60_000);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  if (hours === 0) return `Arriving in ${minutes}m`;
-  return `Arriving in ${hours}h ${minutes}m`;
+  if (hours === 0) return `${minutes}m`;
+  return `${hours}h ${minutes}m`;
 }
 
 export function CountdownTimer({ targetIso }: { targetIso: string }) {
@@ -19,8 +19,14 @@ export function CountdownTimer({ targetIso }: { targetIso: string }) {
     return () => clearInterval(id);
   }, []);
   return (
-    <div className="font-mono text-[0.9375rem] text-[var(--accent)] mt-3">
-      {format(targetIso, now)}
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-[var(--accent)]/40 bg-[var(--accent-muted)]">
+      <span
+        className="inline-block size-1.5 rounded-full"
+        style={{ background: "var(--accent)" }}
+      />
+      <span className="font-mono text-[0.8125rem] font-medium text-[var(--accent)]">
+        Arriving in {format(targetIso, now)}
+      </span>
     </div>
   );
 }

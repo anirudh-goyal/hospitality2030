@@ -20,20 +20,20 @@ export function ObservationsFeed({
   const filtered = filterForRole(observations, role);
 
   return (
-    <section className="mb-8">
-      <div className="section-label mb-4">Observations</div>
-      <div className="flex flex-col gap-2">
+    <section>
+      <div className="section-label mb-3">Observations</div>
+      <div className="flex flex-col gap-2.5">
         {filtered.map((o) => (
-          <Card key={o._id} className="px-4 py-3.5 gap-1.5">
-            <div className="flex gap-3 items-baseline flex-wrap">
-              <span className="font-mono text-xs text-[var(--text-tertiary)]">
+          <Card key={o._id} className="px-4 py-3 gap-2">
+            <div className="flex gap-2 items-center flex-wrap">
+              <span className="font-mono text-[0.6875rem] text-[var(--text-tertiary)]">
                 {new Date(o.capturedAtIso).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
                 })}
               </span>
-              <span className="font-mono text-xs text-[var(--text-secondary)]">
-                {o.capturedBy.name} - {o.capturedBy.role}
+              <span className="font-mono text-[0.6875rem] text-[var(--text-secondary)]">
+                {o.capturedBy.name} · {o.capturedBy.role.replace("_", " ")}
               </span>
               {o.extracted.categories.map((c) => (
                 <Badge
@@ -45,11 +45,13 @@ export function ObservationsFeed({
                 </Badge>
               ))}
             </div>
-            <p className="text-[var(--text-primary)]">{o.rawText}</p>
+            <p className="text-[0.875rem] text-[var(--text-primary)] leading-snug">
+              {o.rawText}
+            </p>
           </Card>
         ))}
         {filtered.length === 0 ? (
-          <p className="text-[var(--text-tertiary)]">
+          <p className="text-[0.875rem] text-[var(--text-tertiary)]">
             No observations visible for this role.
           </p>
         ) : null}

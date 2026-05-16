@@ -11,17 +11,23 @@ type Signal = {
 };
 
 export function ExternalSignalsSection({ signals }: { signals: Signal[] }) {
-  if (!signals.length) return null;
+  if (!signals.length) {
+    return (
+      <section>
+        <div className="section-label mb-3">External Signals</div>
+        <p className="text-[0.875rem] text-[var(--text-tertiary)]">
+          Signals are visible to Front Desk and Concierge roles.
+        </p>
+      </section>
+    );
+  }
   return (
-    <section className="mb-8">
-      <div className="section-label mb-4">External Signals</div>
-      <div className="flex flex-col gap-4">
+    <section>
+      <div className="section-label mb-3">External Signals</div>
+      <div className="flex flex-col gap-3">
         {signals.map((s) => (
           <Card key={s._id} className="p-5 gap-3">
-            <p
-              className="font-display italic text-[var(--text-primary)] leading-relaxed"
-              style={{ fontSize: "1rem" }}
-            >
+            <p className="text-[0.9375rem] leading-relaxed text-[var(--text-primary)]">
               &ldquo;{s.excerpt}&rdquo;
             </p>
             <div className="flex flex-wrap gap-2">
@@ -35,8 +41,8 @@ export function ExternalSignalsSection({ signals }: { signals: Signal[] }) {
                 </Badge>
               ))}
             </div>
-            <div className="font-mono text-xs text-[var(--text-tertiary)]">
-              {s.platform} - {s.venue} -{" "}
+            <div className="font-mono text-[0.75rem] text-[var(--text-tertiary)]">
+              {s.platform} · {s.venue} ·{" "}
               {new Date(s.reviewDateIso).toLocaleDateString("en-US", {
                 month: "short",
                 year: "numeric",

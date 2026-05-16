@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useQuery } from "convex/react";
+import { Sparkles } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DelightModal } from "./delight-modal";
@@ -25,27 +27,58 @@ export function GestureSection({
   const scheduled = primary.status === "scheduled";
 
   return (
-    <section className="mb-8">
-      <div className="section-label mb-4">Suggested Gesture</div>
-      <Card className="p-5 border-l-2 border-l-[var(--accent)] gap-3">
-        <div
-          className="font-display"
-          style={{ fontSize: "1.25rem", fontWeight: 500 }}
-        >
-          {primary.title}
+    <section className="h-full">
+      <div className="section-label mb-3 flex items-center gap-2">
+        <Sparkles className="size-3.5 text-[var(--accent)]" />
+        Suggested Gesture
+      </div>
+      <Card className="p-6 border-l-2 border-l-[var(--accent)] gap-4 h-[calc(100%-1.75rem)]">
+        <div className="flex items-start justify-between gap-3">
+          <h2
+            className="text-[1.5rem] font-medium leading-tight"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {primary.title}
+          </h2>
+          {scheduled ? (
+            <Badge
+              className="font-mono text-[0.6875rem] shrink-0"
+              style={{
+                background: "var(--accent-muted)",
+                color: "var(--accent)",
+              }}
+            >
+              Scheduled
+            </Badge>
+          ) : null}
         </div>
-        <p className="text-[var(--text-secondary)]">{primary.rationale}</p>
-        <div className="flex justify-between items-center mt-1">
-          <div className="font-mono text-[0.8125rem] text-[var(--text-tertiary)]">
-            {scheduled
-              ? `Scheduled - ${primary.availability}`
-              : `Est. HKD ${primary.estCostHkd.toLocaleString()} - ${primary.availability}`}
-          </div>
+
+        <div className="font-mono text-[0.8125rem] text-[var(--text-secondary)]">
+          {scheduled
+            ? primary.availability
+            : `HKD ${primary.estCostHkd.toLocaleString()} · ${primary.availability}`}
+        </div>
+
+        <p className="text-[0.9375rem] leading-relaxed text-[var(--text-secondary)]">
+          {primary.rationale}
+        </p>
+
+        <div className="flex items-center gap-3 mt-auto pt-2">
+          {!scheduled ? (
+            <Button
+              size="sm"
+              onClick={() => setOpen(true)}
+              className="font-medium text-[0.8125rem] h-auto py-2.5 px-4 border-0"
+              style={{ background: "var(--accent)", color: "#0a0909" }}
+            >
+              Approve and schedule
+            </Button>
+          ) : null}
           <Button
             variant="outline"
             size="sm"
             onClick={() => setOpen(true)}
-            className="font-mono text-[0.8125rem] bg-transparent border-[var(--border)] text-[var(--accent)] hover:bg-[var(--elevated)] hover:text-[var(--accent)]"
+            className="font-medium text-[0.8125rem] h-auto py-2.5 px-4 bg-transparent border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--elevated)] hover:text-[var(--text-primary)]"
           >
             View all options
           </Button>
