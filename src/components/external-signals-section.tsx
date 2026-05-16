@@ -10,11 +10,17 @@ type Signal = {
   extractedTags: string[];
 };
 
-export function ExternalSignalsSection({ signals }: { signals: Signal[] }) {
+export function ExternalSignalsSection({
+  signals,
+  headless = false,
+}: {
+  signals: Signal[];
+  headless?: boolean;
+}) {
   if (!signals.length) {
     return (
       <section>
-        <div className="section-label mb-3">External Signals</div>
+        {headless ? null : <div className="section-label mb-3">External Signals</div>}
         <p className="text-[0.875rem] text-[var(--text-tertiary)]">
           Signals are visible to Front Desk and Concierge roles.
         </p>
@@ -23,7 +29,7 @@ export function ExternalSignalsSection({ signals }: { signals: Signal[] }) {
   }
   return (
     <section>
-      <div className="section-label mb-3">External Signals</div>
+      {headless ? null : <div className="section-label mb-3">External Signals</div>}
       <div className="flex flex-col gap-3">
         {signals.map((s) => (
           <Card key={s._id} className="p-5 gap-3">

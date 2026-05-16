@@ -11,9 +11,11 @@ import type { Role } from "./role-switcher";
 export function ObservationsFeed({
   guestId,
   role,
+  headless = false,
 }: {
   guestId: Id<"guests">;
   role: Role;
+  headless?: boolean;
 }) {
   const observations = useQuery(api.observations.listForGuest, { guestId });
   if (!observations) return null;
@@ -21,7 +23,7 @@ export function ObservationsFeed({
 
   return (
     <section>
-      <div className="section-label mb-3">Observations</div>
+      {headless ? null : <div className="section-label mb-3">Observations</div>}
       <div className="flex flex-col gap-2.5">
         {filtered.map((o) => (
           <Card key={o._id} className="px-4 py-3 gap-2">

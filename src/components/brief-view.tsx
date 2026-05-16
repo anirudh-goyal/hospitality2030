@@ -134,15 +134,26 @@ export function BriefView({ guest, brief, signals }: Props) {
 
         <TabsContent
           value="evidence"
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-6 py-5"
-          style={{ scrollbarGutter: "stable" }}
+          className="flex-1 min-h-0 overflow-hidden px-6 py-5"
         >
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <ExternalSignalsSection signals={visibleSignals} />
+          <div className="grid grid-cols-2 gap-6 h-full min-h-0">
+            <div className="flex flex-col min-h-0">
+              <div className="section-label mb-3">External Signals</div>
+              <div
+                className="flex-1 min-h-0 overflow-y-auto pr-1"
+                style={{ scrollbarGutter: "stable" }}
+              >
+                <ExternalSignalsSection signals={visibleSignals} headless />
+              </div>
             </div>
-            <div>
-              <ObservationsFeed guestId={guest._id} role={role} />
+            <div className="flex flex-col min-h-0">
+              <div className="section-label mb-3">Observations</div>
+              <div
+                className="flex-1 min-h-0 overflow-y-auto pr-1"
+                style={{ scrollbarGutter: "stable" }}
+              >
+                <ObservationsFeed guestId={guest._id} role={role} headless />
+              </div>
             </div>
           </div>
         </TabsContent>
