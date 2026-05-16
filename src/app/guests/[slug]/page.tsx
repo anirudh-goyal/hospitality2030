@@ -21,13 +21,11 @@ export default async function GuestBriefPage({
   ]);
 
   return (
-    <main className="max-w-[1200px] mx-auto px-6 py-8">
-      <BriefView
-        guest={guest}
-        brief={brief}
-        observations={observations}
-        signals={signals}
-      />
-    </main>
+    <BriefView
+      guest={guest}
+      brief={brief}
+      observations={observations}
+      signals={signals}
+    />
   );
 }

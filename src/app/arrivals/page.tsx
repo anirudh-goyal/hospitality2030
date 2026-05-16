@@ -42,14 +42,20 @@ export default async function ArrivalsPage({
         }
       />
 
-      <div className="flex-1 min-h-0 overflow-auto">
+      <div className="flex-1 min-h-0 overflow-auto" style={{ scrollbarGutter: "stable" }}>
         <div className="max-w-3xl mx-auto px-6 py-10">
-          <div className="section-label mb-2">Today</div>
+          <div className="section-label mb-2">
+            {filter === "tomorrow" ? "Tomorrow" : filter === "vip" ? "Inner Circle" : "Today"}
+          </div>
           <h1
             className="font-display mb-8"
             style={{ fontSize: "2.25rem", fontWeight: 500 }}
           >
-            Today at Rosewood Hong Kong
+            {filter === "tomorrow"
+              ? "Tomorrow at Rosewood Hong Kong"
+              : filter === "vip"
+                ? "Inner Circle arrivals"
+                : "Today at Rosewood Hong Kong"}
           </h1>
 
           <Tabs value={filter} className="mb-6">

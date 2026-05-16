@@ -2,6 +2,7 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "../../../convex/_generated/api";
 import { CaptureForm } from "@/components/capture-form";
 import type { SelectedGuest } from "@/components/guest-picker";
+import { SiteHeader } from "@/components/site-header";
 
 const DEMO_SENTENCE =
   "Mr. Anderson mentioned his daughter Mia just turned ten and loved the pool at Rosewood London last month.";
@@ -29,6 +30,28 @@ export default async function CapturePage({
   }
 
   const prefill = sp.prefill === "demo" ? DEMO_SENTENCE : "";
+  const today = new Date().toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
-  return <CaptureForm initialGuest={initial} initialPrefill={prefill} />;
+  return (
+    <div className="flex flex-col h-screen">
+      <SiteHeader
+        crumbs={[{ label: "Capture" }]}
+        right={
+          <span className="font-mono text-[0.75rem] text-[var(--text-tertiary)]">
+            {today} · Rosewood Hong Kong
+          </span>
+        }
+      />
+      <div
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+        style={{ scrollbarGutter: "stable" }}
+      >
+        <CaptureForm initialGuest={initial} initialPrefill={prefill} />
+      </div>
+    </div>
+  );
 }

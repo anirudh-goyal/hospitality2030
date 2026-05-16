@@ -17,6 +17,11 @@ import { GestureSection } from "./gesture-section";
 import { ObservationsFeed } from "./observations-feed";
 import { PipelineStrip, AgentTimeline } from "./agent-panel";
 import { RoleSwitcher, type Role } from "./role-switcher";
+import {
+  filterKeyFactsForRole,
+  filterTextsForRole,
+  gestureVisibleToRole,
+} from "@/lib/role-filter";
 
 type Props = {
   guest: Doc<"guests">;
@@ -33,8 +38,12 @@ export function BriefView({ guest, brief, signals }: Props) {
 
   const visibleSignals =
     role === "front_desk" || role === "concierge" ? signals : [];
-  const visibleSensitivities = brief?.sensitivities ?? [];
-  const visibleKeyFacts = brief?.keyFacts ?? [];
+  const visibleSensitivities = filterTextsForRole(
+    brief?.sensitivities ?? [],
+    role
+  );
+  const visibleKeyFacts = filterKeyFactsForRole(brief?.keyFacts ?? [], role);
+  const showGesture = !!brief && gestureVisibleToRole(role);
 
   const today = new Date().toLocaleDateString("en-US", {
     month: "long",
@@ -61,11 +70,12 @@ export function BriefView({ guest, brief, signals }: Props) {
 
       <BriefHeader guest={guest} />
 
-      <div className="px-6 pt-5 pb-3 border-b border-[var(--border)]">
-        <Tabs
-          value={tab}
-          onValueChange={(v) => setTab(v as Tab)}
-        >
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setTab(v as Tab)}
+        className="flex-1 min-h-0 flex flex-col"
+      >
+        <div className="px-6 pt-5 pb-3 border-b border-[var(--border)]">
           <TabsList className="bg-[var(--surface)] p-1 h-auto rounded-md gap-1">
             {[
               { id: "brief", label: "Brief" },
@@ -81,30 +91,31 @@ export function BriefView({ guest, brief, signals }: Props) {
               </TabsTrigger>
             ))}
           </TabsList>
-        </Tabs>
-      </div>
+        </div>
 
-      <Tabs
-        value={tab}
-        onValueChange={(v) => setTab(v as Tab)}
-        className="flex-1 min-h-0 flex flex-col"
-      >
         <TabsContent
           value="brief"
-          className="flex-1 min-h-0 overflow-auto px-6 py-5"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-6 py-5"
+          style={{ scrollbarGutter: "stable" }}
         >
           <div className="flex flex-col gap-5">
             <div className="grid grid-cols-3 gap-4">
               <div className="col-span-2">
-                {brief ? (
+                {showGesture ? (
                   <GestureSection
                     guestId={guest._id}
                     guestName={`${guest.firstName} ${guest.lastName}`}
                   />
-                ) : null}
+                ) : (
+                  <RoleEmptyState role={role} />
+                )}
               </div>
               <div className="col-span-1">
-                <SensitivitiesSection items={visibleSensitivities} />
+                {visibleSensitivities.length ? (
+                  <SensitivitiesSection items={visibleSensitivities} />
+                ) : (
+                  <NoSensitivities />
+                )}
               </div>
             </div>
 
@@ -113,13 +124,18 @@ export function BriefView({ guest, brief, signals }: Props) {
               onOpenActivity={() => setTab("activity")}
             />
 
-            <KeyFactsSection facts={visibleKeyFacts} />
+            {visibleKeyFacts.length ? (
+              <KeyFactsSection facts={visibleKeyFacts} />
+            ) : (
+              <NoHighlights />
+            )}
           </div>
         </TabsContent>
 
         <TabsContent
           value="evidence"
-          className="flex-1 min-h-0 overflow-auto px-6 py-5"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-6 py-5"
+          style={{ scrollbarGutter: "stable" }}
         >
           <div className="grid grid-cols-2 gap-6">
             <div>
@@ -133,11 +149,53 @@ export function BriefView({ guest, brief, signals }: Props) {
 
         <TabsContent
           value="activity"
-          className="flex-1 min-h-0 overflow-auto px-6 py-5"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-6 py-5"
+          style={{ scrollbarGutter: "stable" }}
         >
           <AgentTimeline briefId={brief?._id} />
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function RoleEmptyState({ role }: { role: Role }) {
+  const labels: Record<Role, string> = {
+    front_desk: "",
+    concierge: "",
+    restaurant: "Restaurant team focuses on dining notes; gestures are owned by Concierge.",
+    spa: "Spa focuses on wellness and sensitivities; gestures are owned by Concierge.",
+    housekeeping:
+      "Housekeeping focuses on room and service notes; gestures are owned by Concierge.",
+  };
+  return (
+    <div className="h-full rounded-xl border border-dashed border-[var(--border)] p-8 flex items-center justify-center text-center">
+      <p className="text-[0.875rem] text-[var(--text-tertiary)] max-w-[28rem]">
+        {labels[role]}
+      </p>
+    </div>
+  );
+}
+
+function NoSensitivities() {
+  return (
+    <div className="h-full rounded-xl border border-dashed border-[var(--border)] p-6 flex items-center justify-center text-center">
+      <p className="text-[0.8125rem] text-[var(--text-tertiary)]">
+        No staff notes apply to this role.
+      </p>
+    </div>
+  );
+}
+
+function NoHighlights() {
+  return (
+    <section>
+      <div className="section-label mb-3">Highlights</div>
+      <div className="rounded-xl border border-dashed border-[var(--border)] p-6 text-center">
+        <p className="text-[0.875rem] text-[var(--text-tertiary)]">
+          No highlights visible for this role.
+        </p>
+      </div>
+    </section>
   );
 }
