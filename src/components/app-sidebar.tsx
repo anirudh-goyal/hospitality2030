@@ -84,9 +84,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent className="flex flex-col gap-1">
-            <SidebarMenu>
+        <SidebarGroup className="pt-2">
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-1.5">
               {NAV_MAIN.map((item) => {
                 const active =
                   pathname === item.url ||
@@ -98,9 +98,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       tooltip={item.title}
                       isActive={active}
+                      className="h-10 gap-3 text-[0.9375rem]"
                     >
                       <Link href={item.url}>
-                        <Icon />
+                        <Icon className="size-4" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -114,7 +115,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup className="mt-auto">
           <SidebarGroupLabel>Tools</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               {NAV_SECONDARY.map((item) => {
                 const Icon = item.icon;
                 return (

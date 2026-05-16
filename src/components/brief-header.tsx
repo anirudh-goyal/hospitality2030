@@ -1,7 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CountdownTimer } from "./countdown-timer";
-import { RoleSwitcher, type Role } from "./role-switcher";
 
 type Guest = {
   firstName: string;
@@ -27,19 +26,11 @@ function ordinal(n: number): string {
   return `${n}th visit`;
 }
 
-export function BriefHeader({
-  guest,
-  role,
-  onRoleChange,
-}: {
-  guest: Guest;
-  role: Role;
-  onRoleChange: (r: Role) => void;
-}) {
+export function BriefHeader({ guest }: { guest: Guest }) {
   const a = guest.nextArrival;
   return (
-    <header className="flex items-center gap-5 px-6 py-5 border-b border-[var(--border)] bg-[var(--card)]">
-      <Avatar className="size-14 shrink-0 [&_img]:grayscale">
+    <header className="flex items-center gap-5 px-6 py-6 border-b border-[var(--border)] bg-[var(--bg)]">
+      <Avatar className="size-16 shrink-0 [&_img]:grayscale">
         <AvatarImage src={guest.photoUrl} alt="" />
         <AvatarFallback className="font-display text-lg bg-[var(--surface)]">
           {guest.firstName[0]}
@@ -51,7 +42,7 @@ export function BriefHeader({
         <div className="flex items-center gap-3 flex-wrap">
           <h1
             className="font-display leading-none"
-            style={{ fontSize: "2rem", fontWeight: 500 }}
+            style={{ fontSize: "2.25rem", fontWeight: 500 }}
           >
             {guest.firstName} {guest.lastName}
           </h1>
@@ -68,7 +59,7 @@ export function BriefHeader({
           ) : null}
         </div>
         {a ? (
-          <div className="font-mono text-[0.8125rem] text-[var(--text-secondary)] mt-1.5 flex items-center gap-3 flex-wrap">
+          <div className="font-mono text-[0.8125rem] text-[var(--text-secondary)] mt-2 flex items-center gap-3 flex-wrap">
             <span>Suite {a.suite}</span>
             <span className="text-[var(--text-tertiary)]">·</span>
             <span>{a.property}</span>
@@ -88,10 +79,11 @@ export function BriefHeader({
         ) : null}
       </div>
 
-      <div className="flex items-center gap-4 shrink-0">
-        {a ? <CountdownTimer targetIso={a.carEtaIso} /> : null}
-        <RoleSwitcher role={role} onChange={onRoleChange} />
-      </div>
+      {a ? (
+        <div className="shrink-0">
+          <CountdownTimer targetIso={a.carEtaIso} />
+        </div>
+      ) : null}
     </header>
   );
 }

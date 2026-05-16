@@ -1,10 +1,4 @@
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 type KeyFact = { fact: string; source: string };
 
@@ -12,26 +6,28 @@ export function KeyFactsSection({ facts }: { facts: KeyFact[] }) {
   if (!facts.length) return null;
   return (
     <section>
-      <div className="section-label mb-3">Three Key Facts</div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-[var(--accent)]/[0.04] *:data-[slot=card]:to-[var(--card)] *:data-[slot=card]:shadow-xs">
+      <div className="section-label mb-3">Highlights</div>
+      <Card className="p-0 gap-0 overflow-hidden">
         {facts.slice(0, 3).map((f, i) => (
-          <Card key={i} className="gap-3">
-            <CardHeader className="gap-2">
-              <CardDescription className="text-[var(--text-tertiary)] font-mono uppercase tracking-wider text-[0.6875rem]">
-                {`Fact 0${i + 1}`}
-              </CardDescription>
-              <CardTitle className="text-[1rem] font-medium leading-snug text-[var(--text-primary)]">
-                {f.fact}
-              </CardTitle>
-            </CardHeader>
-            <CardFooter className="rounded-b-xl border-t border-[var(--border)] bg-transparent">
-              <div className="font-mono text-[0.75rem] text-[var(--text-tertiary)]">
-                {f.source}
-              </div>
-            </CardFooter>
-          </Card>
+          <div
+            key={i}
+            className={
+              "flex items-baseline gap-5 px-5 py-4" +
+              (i > 0 ? " border-t border-[var(--border)]" : "")
+            }
+          >
+            <span className="font-mono text-[0.6875rem] text-[var(--text-tertiary)] w-6 shrink-0 tabular-nums">
+              0{i + 1}
+            </span>
+            <p className="flex-1 text-[0.9375rem] leading-snug text-[var(--text-primary)]">
+              {f.fact}
+            </p>
+            <span className="font-mono text-[0.75rem] text-[var(--text-tertiary)] shrink-0">
+              {f.source}
+            </span>
+          </div>
         ))}
-      </div>
+      </Card>
     </section>
   );
 }

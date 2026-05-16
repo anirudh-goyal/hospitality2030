@@ -46,7 +46,7 @@ export default function RootLayout({
               } as React.CSSProperties
             }
           >
-            <AppSidebar variant="inset" />
+            <AppSidebar />
             <SidebarInset className="bg-[var(--bg)]">{children}</SidebarInset>
           </SidebarProvider>
           </TooltipProvider>

@@ -16,7 +16,7 @@ import { SensitivitiesSection } from "./sensitivities-section";
 import { GestureSection } from "./gesture-section";
 import { ObservationsFeed } from "./observations-feed";
 import { PipelineStrip, AgentTimeline } from "./agent-panel";
-import type { Role } from "./role-switcher";
+import { RoleSwitcher, type Role } from "./role-switcher";
 
 type Props = {
   guest: Doc<"guests">;
@@ -50,42 +50,50 @@ export function BriefView({ guest, brief, signals }: Props) {
           { label: `${guest.firstName} ${guest.lastName}` },
         ]}
         right={
-          <span className="font-mono text-[0.75rem] text-[var(--text-tertiary)]">
-            {today} · Rosewood Hong Kong
-          </span>
+          <>
+            <RoleSwitcher role={role} onChange={setRole} />
+            <span className="font-mono text-[0.75rem] text-[var(--text-tertiary)] hidden lg:inline">
+              {today} · Rosewood Hong Kong
+            </span>
+          </>
         }
       />
 
-      <BriefHeader guest={guest} role={role} onRoleChange={setRole} />
+      <BriefHeader guest={guest} />
+
+      <div className="px-6 pt-5 pb-3 border-b border-[var(--border)]">
+        <Tabs
+          value={tab}
+          onValueChange={(v) => setTab(v as Tab)}
+        >
+          <TabsList className="bg-[var(--surface)] p-1 h-auto rounded-md gap-1">
+            {[
+              { id: "brief", label: "Brief" },
+              { id: "evidence", label: "Evidence" },
+              { id: "activity", label: "Activity" },
+            ].map((t) => (
+              <TabsTrigger
+                key={t.id}
+                value={t.id}
+                className="text-[0.8125rem] font-medium rounded-sm px-4 py-1.5 bg-transparent border-0 data-[state=active]:bg-[var(--card)] data-[state=active]:text-[var(--text-primary)] data-[state=active]:shadow-sm text-[var(--text-tertiary)] cursor-pointer transition-all"
+              >
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
 
       <Tabs
         value={tab}
         onValueChange={(v) => setTab(v as Tab)}
         className="flex-1 min-h-0 flex flex-col"
       >
-        <TabsList className="bg-transparent border-b border-[var(--border)] rounded-none w-full justify-start gap-6 px-6 h-auto py-0">
-          {[
-            { id: "brief", label: "Brief" },
-            { id: "evidence", label: "Evidence" },
-            { id: "activity", label: "Activity" },
-          ].map((t) => (
-            <TabsTrigger
-              key={t.id}
-              value={t.id}
-              className="text-[0.875rem] font-medium rounded-none bg-transparent border-0 border-b-2 border-transparent data-[state=active]:border-[var(--accent)] data-[state=active]:text-[var(--text-primary)] data-[state=active]:bg-transparent data-[state=active]:shadow-none text-[var(--text-tertiary)] px-0 py-3 -mb-px"
-            >
-              {t.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
         <TabsContent
           value="brief"
           className="flex-1 min-h-0 overflow-auto px-6 py-5"
         >
-          <div className="flex flex-col gap-4">
-            <KeyFactsSection facts={visibleKeyFacts} />
-
+          <div className="flex flex-col gap-5">
             <div className="grid grid-cols-3 gap-4">
               <div className="col-span-2">
                 {brief ? (
@@ -104,6 +112,8 @@ export function BriefView({ guest, brief, signals }: Props) {
               briefId={brief?._id}
               onOpenActivity={() => setTab("activity")}
             />
+
+            <KeyFactsSection facts={visibleKeyFacts} />
           </div>
         </TabsContent>
 
