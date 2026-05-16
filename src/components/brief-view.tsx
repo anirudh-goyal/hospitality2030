@@ -15,8 +15,8 @@ import { ExternalSignalsSection } from "./external-signals-section";
 import { SensitivitiesSection } from "./sensitivities-section";
 import { GestureSection } from "./gesture-section";
 import { ObservationsFeed } from "./observations-feed";
-import { PipelineStrip, AgentTimeline } from "./agent-panel";
 import { RoleSwitcher, type Role } from "./role-switcher";
+import { ChatTab } from "./chat-tab";
 import {
   filterKeyFactsForRole,
   filterTextsForRole,
@@ -30,7 +30,7 @@ type Props = {
   signals: Doc<"externalSignals">[];
 };
 
-type Tab = "brief" | "evidence" | "activity";
+type Tab = "brief" | "evidence" | "chat";
 
 export function BriefView({ guest, brief, signals }: Props) {
   const [role, setRole] = useState<Role>("front_desk");
@@ -80,7 +80,7 @@ export function BriefView({ guest, brief, signals }: Props) {
             {[
               { id: "brief", label: "Brief" },
               { id: "evidence", label: "Evidence" },
-              { id: "activity", label: "Activity" },
+              { id: "chat", label: "Chat" },
             ].map((t) => (
               <TabsTrigger
                 key={t.id}
@@ -119,11 +119,6 @@ export function BriefView({ guest, brief, signals }: Props) {
               </div>
             </div>
 
-            <PipelineStrip
-              briefId={brief?._id}
-              onOpenActivity={() => setTab("activity")}
-            />
-
             {visibleKeyFacts.length ? (
               <KeyFactsSection facts={visibleKeyFacts} />
             ) : (
@@ -159,11 +154,10 @@ export function BriefView({ guest, brief, signals }: Props) {
         </TabsContent>
 
         <TabsContent
-          value="activity"
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-6 py-5"
-          style={{ scrollbarGutter: "stable" }}
+          value="chat"
+          className="flex-1 min-h-0 overflow-hidden p-0"
         >
-          <AgentTimeline briefId={brief?._id} />
+          <ChatTab guest={guest} />
         </TabsContent>
       </Tabs>
     </div>

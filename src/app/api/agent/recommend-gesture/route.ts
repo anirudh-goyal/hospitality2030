@@ -1,34 +1,17 @@
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import Anthropic from "@anthropic-ai/sdk";
-import { z } from "zod";
 import { api } from "../../../../../convex/_generated/api";
 import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
+import {
+  buildGuestContext,
+  handleWriteToolUse,
+} from "@/lib/agent-tools";
 
 export const runtime = "nodejs";
 export const maxDuration = 150;
 
 const HARD_DEADLINE_MS = 120_000;
-
-const gestureSchema = z.object({
-  title: z.string().min(1).max(120),
-  rationale: z.string().min(1).max(400),
-  estCostHkd: z.number().min(0),
-  availability: z.enum([
-    "confirmed_in_directory",
-    "novel_idea",
-    "requires_approval",
-  ]),
-});
-
-const highlightSchema = z.object({
-  fact: z.string().min(1).max(140),
-  source: z.string().min(1).max(80),
-});
-
-const staffNoteSchema = z.object({
-  text: z.string().min(1).max(140),
-});
 
 type RouteBody = { observationId: string; guestId: string };
 
@@ -39,81 +22,15 @@ function buildKickoff(args: {
   brief: Doc<"briefs">;
   newObservationId: string;
 }): string {
-  const { guest, observations, signals, brief, newObservationId } = args;
-
-  const guestBlock = JSON.stringify(
-    {
-      name: `${guest.firstName} ${guest.lastName}`,
-      loyaltyTier: guest.loyaltyTier,
-      firstStayDate: guest.firstStayDate,
-      totalStays: guest.totalStays,
-      lifetimeSpendUsd: guest.lifetimeSpendUsd,
-      advisor: guest.advisor,
-      nextArrival: guest.nextArrival,
-    },
-    null,
-    2
-  );
-
-  const observationsBlock = observations
-    .map((o) => {
-      const flag = o._id === newObservationId ? " [NEW — just captured]" : "";
-      return [
-        `- capturedAt: ${o.capturedAtIso}${flag}`,
-        `  by: ${o.capturedBy.name} (${o.capturedBy.role})`,
-        `  raw: ${JSON.stringify(o.rawText)}`,
-        `  summary: ${o.extracted.summary}`,
-        `  categories: [${o.extracted.categories.join(", ")}]`,
-        `  facts: ${JSON.stringify(o.extracted.facts)}`,
-      ].join("\n");
-    })
-    .join("\n");
-
-  const signalsBlock = signals.length
-    ? signals
-        .map(
-          (s) =>
-            `- ${s.platform} / ${s.venue} (${s.reviewDateIso}, ${s.rating}/5): ${JSON.stringify(s.excerpt)}`
-        )
-        .join("\n")
-    : "(none)";
-
-  const sensitivitiesBlock = brief.sensitivities.length
-    ? brief.sensitivities.map((s) => `- ${s}`).join("\n")
-    : "(none)";
-
-  const existingGesturesBlock = brief.suggestedGestures.length
-    ? brief.suggestedGestures
-        .map(
-          (g) =>
-            `- ${g.title} (HKD ${g.estCostHkd}, ${g.availability}, status=${g.status})\n  ${g.rationale}`
-        )
-        .join("\n")
-    : "(none yet)";
-
-  const existingHighlightsBlock = brief.keyFacts.length
-    ? brief.keyFacts.map((k) => `- ${k.fact} (source: ${k.source})`).join("\n")
-    : "(none yet)";
-
   return `A new observation was just captured for this guest. Follow your workflow: decide which channel(s) apply (submit_gesture, add_highlight, add_staff_note), then call the appropriate tool(s). Most observations produce exactly one record. If the observation is purely trivial, end your turn without calling any tool.
 
-=== GUEST ===
-${guestBlock}
-
-=== OBSERVATIONS (newest first) ===
-${observationsBlock}
-
-=== EXTERNAL SIGNALS ===
-${signalsBlock}
-
-=== EXISTING STAFF NOTES / SENSITIVITIES (do not repeat) ===
-${sensitivitiesBlock}
-
-=== EXISTING HIGHLIGHTS / KEY FACTS (do not repeat) ===
-${existingHighlightsBlock}
-
-=== EXISTING SUGGESTED GESTURES (do not repeat) ===
-${existingGesturesBlock}
+${buildGuestContext({
+  guest: args.guest,
+  observations: args.observations,
+  signals: args.signals,
+  brief: args.brief,
+  newObservationId: args.newObservationId,
+})}
 
 Do not write a chat reply.`;
 }
@@ -265,14 +182,18 @@ export async function POST(req: Request) {
       void updateStatus(label);
 
       if (event.type === "agent.custom_tool_use") {
-        const handled = await handleCustomToolUse({
+        const result = await handleWriteToolUse({
           anthropic,
           convex,
           sessionId: session.id,
           briefId,
-          event,
+          event: event as {
+            id: string;
+            name: string;
+            input: Record<string, unknown>;
+          },
         });
-        if (handled) submitted = true;
+        if (result.ok) submitted = true;
         continue;
       }
 
@@ -305,106 +226,4 @@ async function loadGuestById(
 ): Promise<Doc<"guests"> | null> {
   const all = await convex.query(api.guests.listAll, {});
   return all.find((g) => g._id === guestId) ?? null;
-}
-
-type CustomToolUseEvent = {
-  id: string;
-  name: string;
-  input: Record<string, unknown>;
-};
-
-async function handleCustomToolUse(args: {
-  anthropic: Anthropic;
-  convex: ConvexHttpClient;
-  sessionId: string;
-  briefId: Id<"briefs">;
-  event: CustomToolUseEvent;
-}): Promise<boolean> {
-  const { anthropic, convex, sessionId, briefId, event } = args;
-  const reply = (text: string, isError = false) =>
-    anthropic.beta.sessions.events.send(sessionId, {
-      events: [
-        {
-          type: "user.custom_tool_result",
-          custom_tool_use_id: event.id,
-          content: [{ type: "text", text }],
-          is_error: isError,
-        },
-      ],
-    });
-
-  if (event.name === "submit_gesture") {
-    const parsed = gestureSchema.safeParse(event.input);
-    if (!parsed.success) {
-      console.error(
-        "[recommend-gesture] submit_gesture validation failed",
-        parsed.error.flatten()
-      );
-      await reply(
-        `Validation failed: ${JSON.stringify(
-          parsed.error.flatten().fieldErrors
-        )}. Resubmit with valid input.`,
-        true
-      );
-      return false;
-    }
-    await convex.mutation(api.briefs.appendSuggestedGesture, {
-      briefId,
-      gesture: parsed.data,
-    });
-    await reply("ok");
-    return true;
-  }
-
-  if (event.name === "add_highlight") {
-    const parsed = highlightSchema.safeParse(event.input);
-    if (!parsed.success) {
-      console.error(
-        "[recommend-gesture] add_highlight validation failed",
-        parsed.error.flatten()
-      );
-      await reply(
-        `Validation failed: ${JSON.stringify(
-          parsed.error.flatten().fieldErrors
-        )}. Resubmit with valid input.`,
-        true
-      );
-      return false;
-    }
-    await convex.mutation(api.briefs.appendHighlight, {
-      briefId,
-      highlight: parsed.data,
-    });
-    await reply("ok");
-    return true;
-  }
-
-  if (event.name === "add_staff_note") {
-    const parsed = staffNoteSchema.safeParse(event.input);
-    if (!parsed.success) {
-      console.error(
-        "[recommend-gesture] add_staff_note validation failed",
-        parsed.error.flatten()
-      );
-      await reply(
-        `Validation failed: ${JSON.stringify(
-          parsed.error.flatten().fieldErrors
-        )}. Resubmit with valid input.`,
-        true
-      );
-      return false;
-    }
-    await convex.mutation(api.briefs.appendStaffNote, {
-      briefId,
-      text: parsed.data.text,
-    });
-    await reply("ok");
-    return true;
-  }
-
-  await reply(
-    `Unknown tool ${event.name}. Choose submit_gesture, add_highlight, or add_staff_note.`,
-    true
-  );
-  return false;
 }

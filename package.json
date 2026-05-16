@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "dotenv -e .env.local -- tsx scripts/seed.ts",
-    "setup-agent": "dotenv -e .env.local -- tsx scripts/setup-agent.ts"
+    "setup-agent": "dotenv -e .env.local -- tsx scripts/setup-agent.ts",
+    "setup-chat-agent": "dotenv -e .env.local -- tsx scripts/setup-chat-agent.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.78",

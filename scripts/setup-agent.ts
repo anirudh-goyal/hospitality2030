@@ -1,72 +1,16 @@
 import fs from "node:fs";
 import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
+import {
+  EXPERIENCES_MOUNT_PATH as MOUNT_PATH,
+  buildSharedToolList,
+} from "../src/lib/agent-tools";
 
 const ENV_PATH = path.resolve(process.cwd(), ".env.local");
 const EXPERIENCES_PATH = path.resolve(
   process.cwd(),
   "agents/experiences/rosewood-hong-kong.md"
 );
-
-const MOUNT_PATH =
-  "/mnt/session/uploads/workspace/experiences/rosewood-hong-kong.md";
-
-const SUBMIT_GESTURE_INPUT_SCHEMA = {
-  type: "object" as const,
-  properties: {
-    title: {
-      type: "string",
-      description:
-        "Short, concrete name for the gesture (max 80 chars). Avoid adjectives like 'curated' or 'bespoke'.",
-    },
-    rationale: {
-      type: "string",
-      description:
-        "Why this gesture for this guest right now (max 280 chars). Cite the observation or signal that inspired it.",
-    },
-    estCostHkd: {
-      type: "number",
-      minimum: 0,
-      description: "Estimated cost in HKD. 0 is allowed for no-cost gestures.",
-    },
-    availability: {
-      type: "string",
-      enum: ["confirmed_in_directory", "novel_idea", "requires_approval"],
-      description:
-        "confirmed_in_directory if drawn from the experiences directory; novel_idea if your own invention within spend authority; requires_approval if estCostHkd exceeds 1560 HKD (USD $200) or the gesture needs front-office sign-off.",
-    },
-  },
-  required: ["title", "rationale", "estCostHkd", "availability"],
-};
-
-const ADD_HIGHLIGHT_INPUT_SCHEMA = {
-  type: "object" as const,
-  properties: {
-    fact: {
-      type: "string",
-      description:
-        "One concrete fact about the guest worth surfacing in the brief, written as a single short sentence. Strict: 6 to 15 words. Renders on a single line in the brief's Highlights row, so brevity matters. Example: 'Drinks Casa Dragones Joven, neat, after dinner.'",
-    },
-    source: {
-      type: "string",
-      description:
-        "Where the fact came from, mono-tagged and right-aligned in the row. Strict: 3 to 10 words. Use role + property + month/day; never staff names. Example: 'Restaurant, Rosewood London - Apr 22'.",
-    },
-  },
-  required: ["fact", "source"],
-};
-
-const ADD_STAFF_NOTE_INPUT_SCHEMA = {
-  type: "object" as const,
-  properties: {
-    text: {
-      type: "string",
-      description:
-        "A single 'do not mention' or operational sensitivity for the brief's Staff Notes block. Strict: 6 to 15 words. Renders as a short bullet — keep it scannable. Examples: 'Severe shellfish allergy - do not mention by name at dining.' or 'Spouse not traveling - do not reference her.'",
-    },
-  },
-  required: ["text"],
-};
 
 const SYSTEM_PROMPT = `You are the Observation Agent for Sense, the staff intelligence layer at Rosewood Hong Kong.
 
@@ -188,38 +132,7 @@ async function main() {
   }
 
   console.log("[3/4] Resolving agent...");
-  const tools = [
-    {
-      type: "agent_toolset_20260401" as const,
-      default_config: { enabled: false },
-      configs: [
-        { name: "read" as const, enabled: true },
-        { name: "web_search" as const, enabled: true },
-        { name: "web_fetch" as const, enabled: true },
-      ],
-    },
-    {
-      type: "custom" as const,
-      name: "submit_gesture",
-      description:
-        "Add a new pre-arrival or in-stay gesture to the brief's Suggested Gestures block. Use for actionable property-side ideas the team could execute. Call once per gesture; usually at most one per invocation.",
-      input_schema: SUBMIT_GESTURE_INPUT_SCHEMA,
-    },
-    {
-      type: "custom" as const,
-      name: "add_highlight",
-      description:
-        "Add a single short fact to the brief's Highlights block (a.k.a. keyFacts). Use for durable guest preferences, habits, family details, milestones, or interests staff should remember. Renders as a one-line row with a mono source tag on the right. Strict word caps: fact 6-15 words, source 3-10 words.",
-      input_schema: ADD_HIGHLIGHT_INPUT_SCHEMA,
-    },
-    {
-      type: "custom" as const,
-      name: "add_staff_note",
-      description:
-        "Add a single 'do not mention' or operational sensitivity to the brief's Staff Notes block (a.k.a. sensitivities). Use for allergies, relationship/health details, strong dislikes — things the team must handle with care. Renders as a short bullet. Strict word cap: 6-15 words.",
-      input_schema: ADD_STAFF_NOTE_INPUT_SCHEMA,
-    },
-  ];
+  const tools = buildSharedToolList();
 
   let agentId = process.env.ANTHROPIC_AGENT_ID;
   if (agentId) {
