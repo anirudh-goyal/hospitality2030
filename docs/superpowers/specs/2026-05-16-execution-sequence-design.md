@@ -52,7 +52,14 @@ Irreversible one-time investments. Each unlocks compounding speed across every l
 
 - Magic UI, Aceternity - clash with the monochrome Black Card design language
 
-### 0.5 Vercel AI Elements
+### 0.5 shadcn Blocks as structural reference
+
+- `https://ui.shadcn.com/blocks` is the structural starting point for layouts (dashboards, sidebars, lists, empty states)
+- Specifically useful for Phase 3 (Arrivals dashboard layout, brief two-column structure with sidebar) and Phase 4 (capture page form layout)
+- All blocks need restyling to Black Card tokens; copy the structure and replace the styling
+- Pull blocks via `pnpm dlx shadcn@latest add <block-url>` rather than copy-paste, to keep the install-tracking consistent
+
+### 0.6 Vercel AI Elements
 
 - Install selective primitives only: `pnpm dlx ai-elements@latest add tool reasoning response source`
 - Used in Phase 4 (`<Response>` for streaming extraction summary) and Phase 5 (`<Tool>` for agent event rows)
@@ -194,6 +201,7 @@ Timestamps span 18 hours ago, clustered with realistic gaps.
 
 ### 3.2 Arrivals dashboard (`/arrivals`, `/` redirects to it)
 
+- Starting point: a shadcn dashboard block (filter tabs plus card list pattern) stripped to Black Card tokens. Do not import the block wholesale; copy the structural JSX, strip default colors, replace with our tokens.
 - Server component fetches `listArrivingGuests("today")`
 - Filter tabs (shadcn Tabs) - gold underline on active. URL search param `?filter=today` drives state.
 - Guest card list, max-width 720px, centered
@@ -202,6 +210,7 @@ Timestamps span 18 hours ago, clustered with realistic gaps.
 
 ### 3.3 Guest brief (`/guests/[slug]`)
 
+- Starting point: a shadcn sidebar-plus-main-content block. Strip its color scheme; keep the grid and sidebar collapse behavior.
 - Server component fetches `getGuestBrief(guestId, viewerRole)` with `viewerRole` defaulting to `front_desk`
 - The full brief (all observations) is fetched once. A client subview filters by role in memory, keeping the role switcher animation smooth.
 - Two-column desktop layout (`flex-row gap-8`). Left column: 6 sections. Right column: agent panel (stub in Phase 3, filled in Phase 5).
