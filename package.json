@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "dotenv -e .env.local -- tsx scripts/seed.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.78",
@@ -52,9 +53,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
+    "tsx": "^4.22.0",
     "typescript": "^5"
   },
   "pnpm": {
