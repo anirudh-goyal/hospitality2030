@@ -25,3 +25,18 @@ Plan A complete. All verification gates pass:
 - pnpm seed completes with 47 events inserted
 - guests:listArriving returns Anderson + Chen sorted by carEtaIso
 - agentEvents:listForBrief returns 47 events
+
+[2026-05-16 16:25] Plan B Phase 3: ConvexProvider + layout shell + FAB + root redirect + guest card + arrivals + brief shell + role switcher + countdown + 6 sections + agent panel stub + brief-view assembly. Used shadcn primitives throughout (Card, Avatar, Badge, Tabs, Alert, DropdownMenu) plus lucide icons.
+[2026-05-16 16:30] Plan B Phase 4: extract schema (Zod enums), system prompt, /api/extract (streamObject + Sonnet 4.6), guest picker (shadcn Command + Popover), capture form (Textarea + Web Speech), extraction preview (Badge + Card). End-to-end tested: capture → live extract → save → redirect.
+[2026-05-16 16:33] Plan B Phase 5: agent tool row with type-coded icons (Search/Globe/FileText/Sparkles) + 47-event replay panel with Pause/Resume, blinking cursor, auto-scroll, pulsing status dot.
+[2026-05-16 16:35] Plan B Phase 6: delight modal (Dialog + Card + Badge) with 3 gestures + approve flow. Approving updates Convex, brief featured card switches to "Scheduled".
+
+Plan B complete. All verification gates pass:
+- /arrivals: 2 cards, filter tabs, Cormorant on names, gold tier pills, mono ETAs
+- /guests/anderson: 6 sections + agent panel sidebar, 0 console errors
+- Role switcher dropdown changes observations feed
+- Countdown timer ticks every second
+- Capture FAB navigates to /capture
+- /capture?guest=anderson&prefill=demo: live AI extract via Sonnet 4.6, auto-save, redirect to brief
+- Agent panel Replay streams 47 events with cursor + auto-scroll
+- Delight modal: 3 gestures, ceramics primary (gold border), Approve & Schedule → "Scheduled" pill
