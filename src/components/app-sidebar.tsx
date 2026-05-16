@@ -6,9 +6,6 @@ import { usePathname } from "next/navigation";
 import {
   LayoutGrid,
   Mic,
-  Search,
-  Settings,
-  CircleHelp,
   EllipsisVertical,
   CircleUserRound,
   LogOut,
@@ -30,7 +27,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -40,12 +36,6 @@ import {
 const NAV_MAIN = [
   { title: "Arrivals", url: "/arrivals", icon: LayoutGrid },
   { title: "Capture", url: "/capture", icon: Mic },
-];
-
-const NAV_SECONDARY = [
-  { title: "Search", url: "#", icon: Search },
-  { title: "Settings", url: "#", icon: Settings },
-  { title: "Help", url: "#", icon: CircleHelp },
 ];
 
 const STAFF = {
@@ -112,24 +102,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupLabel>Tools</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
-              {NAV_SECONDARY.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton tooltip={item.title}>
-                      <Icon />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
