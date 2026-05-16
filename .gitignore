@@ -46,5 +46,6 @@ convex/_generated/
 
 # playwright mcp scratch
 .playwright-mcp/
-tokens-probe.png
+*.png
+!public/**/*.png
 
