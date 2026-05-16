@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useMutation } from "convex/react";
 import { experimental_useObject } from "@ai-sdk/react";
 import { Loader2, Mic, Square } from "lucide-react";
@@ -28,7 +28,6 @@ export function CaptureForm({
   initialGuest: SelectedGuest;
   initialPrefill: string;
 }) {
-  const router = useRouter();
   const [guest, setGuest] = useState<SelectedGuest>(initialGuest);
   const [text, setText] = useState(initialPrefill);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -53,7 +52,6 @@ export function CaptureForm({
         extracted: final,
       });
       setPhase("saved");
-      setTimeout(() => router.push(`/guests/${guest.slug}`), 1200);
     },
   });
 
@@ -193,20 +191,42 @@ export function CaptureForm({
         </div>
       ) : null}
 
-      <Button
-        onClick={onSubmit}
-        disabled={submitDisabled}
-        className="w-full mt-6 font-mono text-sm h-auto py-3.5 rounded-md"
-        style={{
-          background: submitDisabled ? "var(--surface)" : "var(--accent)",
-          color: submitDisabled ? "var(--text-tertiary)" : "#0a0909",
-        }}
-      >
-        {phase === "idle" && "Capture observation"}
-        {phase === "extracting" && "Capturing..."}
-        {phase === "saving" && "Saving..."}
-        {phase === "saved" && "Saved"}
-      </Button>
+      {phase === "saved" ? (
+        <div className="mt-6 flex items-center gap-3">
+          <Button
+            onClick={() => {
+              setText("");
+              setPhase("idle");
+            }}
+            className="flex-1 font-mono text-sm h-auto py-3.5 rounded-md border-0"
+            style={{ background: "var(--accent)", color: "#0a0909" }}
+          >
+            Capture another
+          </Button>
+          {guest ? (
+            <Link
+              href={`/guests/${guest.slug}`}
+              className="font-mono text-[0.8125rem] text-[var(--accent)] hover:underline"
+            >
+              View {guest.firstName}&rsquo;s brief
+            </Link>
+          ) : null}
+        </div>
+      ) : (
+        <Button
+          onClick={onSubmit}
+          disabled={submitDisabled}
+          className="w-full mt-6 font-mono text-sm h-auto py-3.5 rounded-md"
+          style={{
+            background: submitDisabled ? "var(--surface)" : "var(--accent)",
+            color: submitDisabled ? "var(--text-tertiary)" : "#0a0909",
+          }}
+        >
+          {phase === "idle" && "Capture observation"}
+          {phase === "extracting" && "Capturing..."}
+          {phase === "saving" && "Saving..."}
+        </Button>
+      )}
 
       {(isLoading || object) && (
         <div className="mt-8">
