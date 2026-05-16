@@ -21,6 +21,15 @@ const gestureSchema = z.object({
   ]),
 });
 
+const highlightSchema = z.object({
+  fact: z.string().min(1).max(140),
+  source: z.string().min(1).max(80),
+});
+
+const staffNoteSchema = z.object({
+  text: z.string().min(1).max(140),
+});
+
 type RouteBody = { observationId: string; guestId: string };
 
 function buildKickoff(args: {
@@ -82,7 +91,11 @@ function buildKickoff(args: {
         .join("\n")
     : "(none yet)";
 
-  return `A new observation was just captured for this guest. Read the experiences directory at /mnt/session/uploads/workspace/experiences/rosewood-hong-kong.md, then call the submit_gesture custom tool exactly once with your single best recommendation.
+  const existingHighlightsBlock = brief.keyFacts.length
+    ? brief.keyFacts.map((k) => `- ${k.fact} (source: ${k.source})`).join("\n")
+    : "(none yet)";
+
+  return `A new observation was just captured for this guest. Follow your workflow: decide which channel(s) apply (submit_gesture, add_highlight, add_staff_note), then call the appropriate tool(s). Most observations produce exactly one record. If the observation is purely trivial, end your turn without calling any tool.
 
 === GUEST ===
 ${guestBlock}
@@ -93,13 +106,16 @@ ${observationsBlock}
 === EXTERNAL SIGNALS ===
 ${signalsBlock}
 
-=== SENSITIVITIES ===
+=== EXISTING STAFF NOTES / SENSITIVITIES (do not repeat) ===
 ${sensitivitiesBlock}
 
-=== EXISTING SUGGESTED GESTURES (do not repeat these) ===
+=== EXISTING HIGHLIGHTS / KEY FACTS (do not repeat) ===
+${existingHighlightsBlock}
+
+=== EXISTING SUGGESTED GESTURES (do not repeat) ===
 ${existingGesturesBlock}
 
-Remember: read the directory first, then call submit_gesture exactly once. Do not write a chat reply.`;
+Do not write a chat reply.`;
 }
 
 function statusLabel(event: { type: string; name?: string }): string {
@@ -111,9 +127,10 @@ function statusLabel(event: { type: string; name?: string }): string {
     case "agent.tool_use":
       return event.name ? `tool: ${event.name}` : "tool";
     case "agent.custom_tool_use":
-      return event.name === "submit_gesture"
-        ? "writing recommendation"
-        : `custom: ${event.name ?? ""}`;
+      if (event.name === "submit_gesture") return "writing gesture";
+      if (event.name === "add_highlight") return "writing highlight";
+      if (event.name === "add_staff_note") return "writing staff note";
+      return `custom: ${event.name ?? ""}`;
     case "agent.message":
       return "drafting";
     case "session.status_idle":
@@ -248,66 +265,14 @@ export async function POST(req: Request) {
       void updateStatus(label);
 
       if (event.type === "agent.custom_tool_use") {
-        if (event.name !== "submit_gesture") {
-          await anthropic.beta.sessions.events.send(session.id, {
-            events: [
-              {
-                type: "user.custom_tool_result",
-                custom_tool_use_id: event.id,
-                content: [
-                  {
-                    type: "text",
-                    text: `Unknown tool ${event.name}. Call submit_gesture instead.`,
-                  },
-                ],
-                is_error: true,
-              },
-            ],
-          });
-          continue;
-        }
-
-        const parsed = gestureSchema.safeParse(event.input);
-        if (!parsed.success) {
-          console.error(
-            "[recommend-gesture] gesture validation failed",
-            parsed.error.flatten()
-          );
-          await anthropic.beta.sessions.events.send(session.id, {
-            events: [
-              {
-                type: "user.custom_tool_result",
-                custom_tool_use_id: event.id,
-                content: [
-                  {
-                    type: "text",
-                    text: `Validation failed: ${JSON.stringify(
-                      parsed.error.flatten().fieldErrors
-                    )}. Resubmit with valid input.`,
-                  },
-                ],
-                is_error: true,
-              },
-            ],
-          });
-          continue;
-        }
-
-        await convex.mutation(api.briefs.appendSuggestedGesture, {
+        const handled = await handleCustomToolUse({
+          anthropic,
+          convex,
+          sessionId: session.id,
           briefId,
-          gesture: parsed.data,
+          event,
         });
-        submitted = true;
-
-        await anthropic.beta.sessions.events.send(session.id, {
-          events: [
-            {
-              type: "user.custom_tool_result",
-              custom_tool_use_id: event.id,
-              content: [{ type: "text", text: "ok" }],
-            },
-          ],
-        });
+        if (handled) submitted = true;
         continue;
       }
 
@@ -340,4 +305,106 @@ async function loadGuestById(
 ): Promise<Doc<"guests"> | null> {
   const all = await convex.query(api.guests.listAll, {});
   return all.find((g) => g._id === guestId) ?? null;
+}
+
+type CustomToolUseEvent = {
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+};
+
+async function handleCustomToolUse(args: {
+  anthropic: Anthropic;
+  convex: ConvexHttpClient;
+  sessionId: string;
+  briefId: Id<"briefs">;
+  event: CustomToolUseEvent;
+}): Promise<boolean> {
+  const { anthropic, convex, sessionId, briefId, event } = args;
+  const reply = (text: string, isError = false) =>
+    anthropic.beta.sessions.events.send(sessionId, {
+      events: [
+        {
+          type: "user.custom_tool_result",
+          custom_tool_use_id: event.id,
+          content: [{ type: "text", text }],
+          is_error: isError,
+        },
+      ],
+    });
+
+  if (event.name === "submit_gesture") {
+    const parsed = gestureSchema.safeParse(event.input);
+    if (!parsed.success) {
+      console.error(
+        "[recommend-gesture] submit_gesture validation failed",
+        parsed.error.flatten()
+      );
+      await reply(
+        `Validation failed: ${JSON.stringify(
+          parsed.error.flatten().fieldErrors
+        )}. Resubmit with valid input.`,
+        true
+      );
+      return false;
+    }
+    await convex.mutation(api.briefs.appendSuggestedGesture, {
+      briefId,
+      gesture: parsed.data,
+    });
+    await reply("ok");
+    return true;
+  }
+
+  if (event.name === "add_highlight") {
+    const parsed = highlightSchema.safeParse(event.input);
+    if (!parsed.success) {
+      console.error(
+        "[recommend-gesture] add_highlight validation failed",
+        parsed.error.flatten()
+      );
+      await reply(
+        `Validation failed: ${JSON.stringify(
+          parsed.error.flatten().fieldErrors
+        )}. Resubmit with valid input.`,
+        true
+      );
+      return false;
+    }
+    await convex.mutation(api.briefs.appendHighlight, {
+      briefId,
+      highlight: parsed.data,
+    });
+    await reply("ok");
+    return true;
+  }
+
+  if (event.name === "add_staff_note") {
+    const parsed = staffNoteSchema.safeParse(event.input);
+    if (!parsed.success) {
+      console.error(
+        "[recommend-gesture] add_staff_note validation failed",
+        parsed.error.flatten()
+      );
+      await reply(
+        `Validation failed: ${JSON.stringify(
+          parsed.error.flatten().fieldErrors
+        )}. Resubmit with valid input.`,
+        true
+      );
+      return false;
+    }
+    await convex.mutation(api.briefs.appendStaffNote, {
+      briefId,
+      text: parsed.data.text,
+    });
+    await reply("ok");
+    return true;
+  }
+
+  await reply(
+    `Unknown tool ${event.name}. Choose submit_gesture, add_highlight, or add_staff_note.`,
+    true
+  );
+  return false;
 }

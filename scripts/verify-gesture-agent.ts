@@ -51,7 +51,18 @@ async function main() {
   console.log(
     `  gestureLoading: ${brief?.gestureLoading} (status: ${brief?.gestureLoadingStatus ?? "-"})`
   );
-  console.log(`  suggestedGestures (${brief?.suggestedGestures.length ?? 0}):`);
+  console.log("");
+  console.log(`  Highlights (${brief?.keyFacts.length ?? 0}):`);
+  for (const k of brief?.keyFacts ?? []) {
+    console.log(`    - ${k.fact}   [${k.source}]`);
+  }
+  console.log("");
+  console.log(`  Staff Notes (${brief?.sensitivities.length ?? 0}):`);
+  for (const s of brief?.sensitivities ?? []) {
+    console.log(`    - ${s}`);
+  }
+  console.log("");
+  console.log(`  Suggested Gestures (${brief?.suggestedGestures.length ?? 0}):`);
   for (const g of brief?.suggestedGestures ?? []) {
     console.log(
       `    - ${g.title} | HKD ${g.estCostHkd} | ${g.availability} | ${g.status}`

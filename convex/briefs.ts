@@ -2,6 +2,8 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
 const MAX_SUGGESTED_GESTURES = 3;
+const MAX_KEY_FACTS = 5;
+const MAX_SENSITIVITIES = 5;
 
 export const getForGuest = query({
   args: { guestId: v.id("guests") },
@@ -60,5 +62,34 @@ export const appendSuggestedGesture = mutation({
       ...brief.suggestedGestures,
     ].slice(0, MAX_SUGGESTED_GESTURES);
     await ctx.db.patch(briefId, { suggestedGestures: next });
+  },
+});
+
+export const appendHighlight = mutation({
+  args: {
+    briefId: v.id("briefs"),
+    highlight: v.object({
+      fact: v.string(),
+      source: v.string(),
+    }),
+  },
+  handler: async (ctx, { briefId, highlight }) => {
+    const brief = await ctx.db.get(briefId);
+    if (!brief) throw new Error("Brief not found");
+    const next = [highlight, ...brief.keyFacts].slice(0, MAX_KEY_FACTS);
+    await ctx.db.patch(briefId, { keyFacts: next });
+  },
+});
+
+export const appendStaffNote = mutation({
+  args: {
+    briefId: v.id("briefs"),
+    text: v.string(),
+  },
+  handler: async (ctx, { briefId, text }) => {
+    const brief = await ctx.db.get(briefId);
+    if (!brief) throw new Error("Brief not found");
+    const next = [text, ...brief.sensitivities].slice(0, MAX_SENSITIVITIES);
+    await ctx.db.patch(briefId, { sensitivities: next });
   },
 });

@@ -90,3 +90,12 @@ First UI cut replaced the Suggested Gesture card with a skeleton while the agent
 
 ## 2026-05-16 — Managed Agent system prompt stays in scripts/, not src/lib/ai/prompts.ts
 `prompts.ts` is for streaming Vercel-AI-SDK prompts that the React/route layer consumes. The Managed Agent prompt is only consumed by the setup script that pushes it to the agent's persisted config — it never enters the request path. Keeping it next to `scripts/setup-agent.ts` means the prompt and the agent config (tools, schema, model) travel as one editable unit. CLAUDE.md updated to reflect this scoping.
+
+## 2026-05-16 — Observation Agent: three output channels, agent picks
+Expanded the gesture-only agent into a general "Observation Agent" with three custom tools: `submit_gesture` (existing), `add_highlight` (writes to keyFacts), `add_staff_note` (writes to sensitivities). The agent chooses which channel(s) fit the new observation. Most observations produce exactly one record; trivial observations produce none. Trade-off considered: forcing exactly one record per invocation would be simpler but would generate noise on observations like "guest waved hello" — trusting the agent to opt out keeps the brief signal-dense.
+
+Word caps are enforced both in the input_schema descriptions and in Zod on the route side. 6-15 words for highlight.fact and staff_note.text (single-line render); 3-10 words for highlight.source (mono right-aligned tag). Going over either cap costs nothing structurally but breaks the brief's single-line rows visually.
+
+The agent is allowed to issue multiple custom_tool_use events in one session (e.g. one observation that's both a sensitivity and a durable fact). The route loops on the event stream and processes each tool call, returning `user.custom_tool_result` per call. Cap-on-arrays semantics in Convex (3 gestures / 5 highlights / 5 staff notes) prevents runaway growth.
+
+A nice secondary effect: when the agent decides only to write a highlight or staff note (no gesture), it skips reading the experiences directory and skips web_search — bringing latency from ~60s down to ~13-20s. The system prompt explicitly tells it to skip those tools when not recommending a gesture.
