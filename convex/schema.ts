@@ -77,6 +77,8 @@ export default defineSchema({
       })
     ),
     sensitivities: v.array(v.string()),
+    gestureLoading: v.optional(v.boolean()),
+    gestureLoadingStatus: v.optional(v.string()),
   }).index("by_guestId", ["guestId"]),
 
   agentEvents: defineTable({

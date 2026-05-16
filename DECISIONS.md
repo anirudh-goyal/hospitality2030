@@ -59,3 +59,34 @@ Single tab-level scroll caused observation content to push signal column down an
 
 ## 2026-05-16 — Rollback tag
 Pre-redesign rollback point: `pre-redesign` tag at commit `1851d48`. Use `git reset --hard pre-redesign` to revert all redesign work if needed.
+
+## 2026-05-16 — Suggested Gestures: live Managed Agent (supersedes pre-run + replay for this slice)
+The original "Managed Agent strategy: pre-run + replay" still applies to the Activity tab's agent event timeline (seeded `agentEvents`, replayed in the panel for the pre-arrival research story). For the **Suggested Gesture** block specifically we now run a live Sonnet 4.6 Managed Agent on every captured observation. Trade-off: ~40-60s of live network latency, but the demo moment is "observation → live recommendation lands in the brief" which is far more compelling than a static seeded card. Risk hedged by silent failure mode (skeleton clears, existing gestures untouched) and a 120s hard deadline.
+
+## 2026-05-16 — Custom tool over Convex MCP for the gesture agent
+The agent needs to record the chosen gesture somewhere our app controls. Two viable paths:
+1. **Convex MCP server** in `mcp_servers` with deploy key in a vault. Most "agent natively queries the DB" feel.
+2. **Custom tool** (`submit_gesture`) the agent fires; our route receives the `agent.custom_tool_use` event over the session SSE stream and resolves it server-side with Convex.
+
+Chose #2. Reasons:
+- The Anthropic container can't reach `localhost`. Custom tools work without exposing a public endpoint because both halves of the conversation (`events.stream` and `events.send`) are outbound from our server. MCP would require ngrok or a deployed endpoint.
+- Convex credentials never leave our server. With MCP we'd be vault-ing the deploy key.
+- Lower setup overhead, fewer failure modes for the demo.
+
+## 2026-05-16 — Pre-fetch on kickoff, not data tools
+The gesture agent doesn't get database tools. Instead, our route pre-fetches guest + observations + signals + brief from Convex and packs them as a structured snapshot into the kickoff `user.message`. Reasoning: "everything we know about this guest" is bounded (one row + N observations + M signals); fetching it deterministically up front is faster, simpler, and removes the failure surface of tool-call round-trips. If we later need open-ended exploration (e.g. similar-guest lookups), promoting to a custom tool is straightforward.
+
+## 2026-05-16 — Managed Agents file mount path prefix
+The file mount API silently prefixes `mount_path` with `/mnt/session/uploads`. Passing `mount_path: "/workspace/experiences/foo.md"` makes the file land at `/mnt/session/uploads/workspace/experiences/foo.md`. Both the agent's system prompt (in `scripts/setup-agent.ts`) and the per-session kickoff message (in `src/app/api/agent/recommend-gesture/route.ts`) must point to the real path. Without this, the agent's `read` calls return "No such file or directory" and it silently fabricates plausible-looking recommendations. Captured in CLAUDE.md "Mistakes to never repeat."
+
+## 2026-05-16 — Anonymize staff names in agent rationale
+Originally the agent cited staff observations by name ("Daniel R. logged...", "Marie L. flagged..."). For privacy-by-default the system prompt now instructs anonymization to role + property ("a bartender at Rosewood London logged..."). The guest's own name remains in plain text. This is a system-prompt-level rule rather than a redaction at the data layer because staff names are still useful for the brief's audit trail (keyFacts.source) — only the LLM-generated rationale anonymizes.
+
+## 2026-05-16 — Agent gets web_search + web_fetch for situational context
+Beyond the experiences directory, the gesture agent calls `web_search` (and optionally `web_fetch`) to check current weather at the property's city and any major news events during the guest's stay window. Adds ~15-20s latency but produces materially better recommendations (e.g. "light rain forecast, flag the indoor backup version of the scavenger hunt"). System prompt explicitly caps this to "two or three concise searches" so the agent doesn't over-research.
+
+## 2026-05-16 — In-place generation pill, not skeleton replacement
+First UI cut replaced the Suggested Gesture card with a skeleton while the agent ran (~40-60s). User feedback: that block becomes unusable during generation; existing gesture should stay viewable and approvable. New behavior: the current primary gesture stays fully interactive; a small pulsing accent pill (`[•] agent · {status}`) appears next to the section label and disappears when the new gesture lands at slot [0]. Status text mirrors live agent events (`thinking`, `tool: read`, `tool: web_search`, `writing recommendation`). Empty-state-only fallback shows a dashed placeholder card.
+
+## 2026-05-16 — Managed Agent system prompt stays in scripts/, not src/lib/ai/prompts.ts
+`prompts.ts` is for streaming Vercel-AI-SDK prompts that the React/route layer consumes. The Managed Agent prompt is only consumed by the setup script that pushes it to the agent's persisted config — it never enters the request path. Keeping it next to `scripts/setup-agent.ts` means the prompt and the agent config (tools, schema, model) travel as one editable unit. CLAUDE.md updated to reflect this scoping.

@@ -44,12 +44,19 @@ export function CaptureForm({
     onFinish: async ({ object: final }) => {
       if (!guest || !final) return;
       setPhase("saving");
-      await capture({
+      const observationId = await capture({
         guestId: guest.id,
         rawText: text,
         source: "voice",
         capturedBy: STAFF,
         extracted: final,
+      });
+      void fetch("/api/agent/recommend-gesture", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ observationId, guestId: guest.id }),
+      }).catch((err) => {
+        console.error("[capture-form] recommend-gesture trigger failed", err);
       });
       setPhase("saved");
     },

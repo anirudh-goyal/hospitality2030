@@ -54,3 +54,13 @@ Plan B complete. All verification gates pass:
   - Arrivals H1 dynamic per filter.
   - Capture page got SiteHeader.
 [2026-05-16 17:55] Evidence scroll fix: each column (Signals, Observations) is its own scroll context with flex-1 min-h-0 + overflow-y-auto. Added always-visible thin scrollbar styling in globals.css (10px champagne-tinted track) so macOS overlay-scrollbar invisibility doesn't hide the affordance.
+
+[2026-05-16 22:30] Suggested Gesture Managed Agent (Sonnet 4.6) built and verified end-to-end.
+  - `agents/experiences/rosewood-hong-kong.md`: 9-section curated directory (Asaya, dining, neighbourhood, Placemakers, $200/day policy).
+  - `scripts/setup-agent.ts`: idempotent setup. Uploads markdown via Files API, creates/updates environment + agent, persists IDs to `.env.local`. Run with `pnpm setup-agent`. Re-runs bump the agent version and update the system prompt in place.
+  - `src/app/api/agent/recommend-gesture/route.ts`: pre-fetches guest + observations + signals + brief from Convex, creates a session with the file mounted, streams events, validates `submit_gesture` input via Zod, calls `appendSuggestedGesture` (cap 3). Hard 120s deadline. Silent on failure.
+  - Convex schema: added `gestureLoading` + `gestureLoadingStatus` to `briefs`. New mutations: `setGestureLoading`, `appendSuggestedGesture`.
+  - UI: capture form fires-and-forgets to the route after capture mutation resolves; `gesture-section.tsx` keeps the current primary visible and shows a pulsing accent pill ("agent · {status}") next to the section label while a generation is in flight. The new gesture lands at slot [0] automatically via Convex subscription.
+  - Tools enabled on the agent: `read` (for the directory), `web_search` + `web_fetch` (for weather and city news), and the `submit_gesture` custom tool (the answer channel). System prompt anonymizes staff names ("a bartender at Rosewood London" not "Daniel R.").
+  - Verified: ~40-60s end-to-end, agent reads the file and cites it, web tools surface weather context ("light rain May 17-19, flag the indoor backup"), append + cap-to-3 working.
+  - Diagnostics: `scripts/verify-gesture-agent.ts` (hits the route against the seeded Anderson observation), `scripts/inspect-last-session.ts` (dumps event log from the most recent session).

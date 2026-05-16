@@ -86,7 +86,7 @@ When making visual changes: use the Playwright MCP to screenshot and verify the 
 
 - NO authentication. NO Clerk. No login screen.
 - Server Components by default. `"use client"` only when you need hooks or browser APIs.
-- All system prompts live in `src/lib/ai/prompts.ts`.
+- Streaming extraction prompts live in `src/lib/ai/prompts.ts`. Managed Agent system prompts live next to their setup script (e.g. `scripts/setup-agent.ts`) since the prompt and the agent config travel together.
 - All Zod schemas for AI outputs live in `src/lib/ai/extract-schema.ts`.
 - Convex functions in `convex/` — no direct DB calls in React components.
 - Extraction route: `src/app/api/extract/route.ts`. No other AI routes without instruction.
@@ -104,6 +104,17 @@ When making visual changes: use the Playwright MCP to screenshot and verify the 
 - Do NOT edit another session's files without explicit instruction.
 - `src/lib/` is shared — coordinate before editing.
 
+## Running locally
+
+Two processes must run side by side in separate terminals:
+
+```bash
+pnpm dev              # Next.js on http://localhost:3000
+pnpm dlx convex dev   # Convex - required for any data to load
+```
+
+Without `convex dev` running, the app renders but shows empty state (queries hang). Always start both before doing UI work or screenshotting. Demo on localhost in Chrome (Web Speech API requirement).
+
 ## Workflow
 
 - Start every session by reading SPEC.md and any existing PROGRESS.md.
@@ -120,4 +131,4 @@ When making visual changes: use the Playwright MCP to screenshot and verify the 
 
 ## Mistakes to never repeat
 
-<!-- append here as the build progresses -->
+- **Managed Agents file mounts get a `/mnt/session/uploads` prefix.** Passing `mount_path: "/workspace/foo.md"` to `sessions.create()` results in the actual file living at `/mnt/session/uploads/workspace/foo.md`. The system prompt and any kickoff messages must point to the real path or the agent's `read` calls return "No such file or directory" and it silently falls back to making things up.
